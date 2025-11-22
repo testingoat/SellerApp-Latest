@@ -1,0 +1,92 @@
+# React Native
+
+# OSX
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Fastlane
+*.mobileprovision
+*.cert
+
+# Android/IntelliJ
+android/build/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+*.iml
+*.hprof
+.gradle
+build/
+
+# iOS
+ios/build/
+ios/Pods/
+ios/*.xcworkspace
+ios/*.xcuserdata
+
+# Buck
+buck-out/
+.buckconfig.local
+*.keystore
+!debug.keystore
+
+# Bundle artifacts
+*.jsbundle
+
+# CocoaPods
+ios/Pods/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Misc
+.env
+.env.*
+
+# Large files and backups
+*.tar
+*.tar.gz
+*.zip
+*.apk
+*.aab
+*.ipa
+
+# Backup directories
+**/Serverbackup/
+**/backup/
+**/backups/
+
+# Build outputs
+*.apk
+*.aab
+*.ipa
+*.app
+*.dSYM.zip
+*.dSYM
+
+# Gradle files
+.gradle/
+**/build/
+*.bin
+*.lock
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Installer files
+*.msi
+*.exe
+*.dmg
+
+# Embedded git repositories
+SellerApp2/.git/
