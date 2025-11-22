@@ -13,21 +13,21 @@ yarn-error.log
 *.cert
 
 # Android/IntelliJ
-android/build/
-android/app/build/
-android/.gradle/
-android/.idea/
-android/local.properties
+**/android/build/
+**/android/app/build/
+**/android/.gradle/
+**/android/.idea/
+**/android/local.properties
 *.iml
 *.hprof
-.gradle
-build/
+**/.gradle/
+**/build/
 
 # iOS
-ios/build/
-ios/Pods/
-ios/*.xcworkspace
-ios/*.xcuserdata
+**/ios/build/
+**/ios/Pods/
+**/ios/*.xcworkspace
+**/ios/*.xcuserdata
 
 # Buck
 buck-out/
@@ -39,7 +39,7 @@ buck-out/
 *.jsbundle
 
 # CocoaPods
-ios/Pods/
+**/ios/Pods/
 
 # Expo
 .expo/
@@ -57,7 +57,8 @@ ios/Pods/
 *.aab
 *.ipa
 
-# Backup directories
+# Backup directories - EXCLUDE ALL
+Serverbackup/
 **/Serverbackup/
 **/backup/
 **/backups/
@@ -70,11 +71,15 @@ ios/Pods/
 *.dSYM.zip
 *.dSYM
 
-# Gradle files
-.gradle/
+# Gradle files - EXCLUDE ALL
+**/.gradle/
 **/build/
-*.bin
-*.lock
+**/*.bin
+**/*.lock
+**/nb-cache/
+**/intermediates/
+**/intermediary_bundle/
+**/outputs/
 
 # VS Code
 .vscode/*
@@ -88,5 +93,8 @@ ios/Pods/
 *.exe
 *.dmg
 
+# Exclude duplicate/copy folders
+SellerApp2 - Copy/
+
 # Embedded git repositories
-SellerApp2/.git/
+.git/

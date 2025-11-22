@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoatGoat System Monitoring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-left p {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .refresh-info {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            height: calc(100vh - 80px);
+            position: relative;
+            background: white;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .header-left h1 {
+                font-size: 20px;
+            }
+
+            .header-left p {
+                font-size: 12px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .status-badge {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+
+            .refresh-info {
+                font-size: 11px;
+            }
+        }
+
+        /* Error state */
+        .error-container {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .error-container.show {
+            display: flex;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .retry-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .retry-button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>
+                    <span>🎯</span>
+                    GoatGoat System Monitoring
+                </h1>
+                <p>Real-time server metrics and application health</p>
+            </div>
+            <div class="header-right">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span>Live</span>
+                </div>
+                <div class="refresh-info">
+                    Auto-refresh: 30s
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading dashboard...</div>
+        </div>
+
+        <div class="error-container" id="errorContainer">
+            <div class="error-icon">⚠️</div>
+            <div class="error-title">Dashboard Load Error</div>
+            <div class="error-message">
+                Unable to load the Grafana dashboard. Please check your connection and try again.
+            </div>
+            <button class="retry-button" onclick="location.reload()">Retry</button>
+        </div>
+
+        <iframe
+            id="grafanaIframe"
+            src="https://goatgoat.grafana.net/d-solo/f3ee8022-12b2-4ddf-a8d5-e53fdd8ae81c/goatgoat-system-monitoring?orgId=1&refresh=30s&theme=light&panelId=1"
+            frameborder="0"
+            allowfullscreen
+            sandbox="allow-scripts allow-same-origin allow-popups"
+        ></iframe>
+
+        <!-- Alternative: Direct link if iframe doesn't work -->
+        <div id="alternativeView" style="display: none; padding: 40px; text-align: center;">
+            <h2 style="color: #333; margin-bottom: 20px;">Dashboard Access</h2>
+            <p style="color: #666; margin-bottom: 30px;">
+                For security reasons, the dashboard cannot be embedded. Please click the button below to open it in a new tab.
+            </p>
+            <a href="https://goatgoat.grafana.net/d/f3ee8022-12b2-4ddf-a8d5-e53fdd8ae81c/goatgoat-system-monitoring?orgId=1&refresh=30s&kiosk=tv"
+               target="_blank"
+               style="display: inline-block; background: #667eea; color: white; padding: 15px 30px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+                Open Grafana Dashboard →
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Handle iframe loading
+        const iframe = document.getElementById('grafanaIframe');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const errorContainer = document.getElementById('errorContainer');
+        const alternativeView = document.getElementById('alternativeView');
+
+        // Hide loading overlay when iframe loads
+        iframe.addEventListener('load', function() {
+            // Check if iframe content is accessible
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                // If we can access it, hide loading
+                setTimeout(() => {
+                    loadingOverlay.classList.add('hidden');
+                }, 500);
+            } catch (e) {
+                // If we can't access it (CORS/X-Frame-Options), show alternative
+                console.log('Iframe blocked, showing alternative view');
+                loadingOverlay.classList.add('hidden');
+                iframe.style.display = 'none';
+                alternativeView.style.display = 'block';
+            }
+        });
+
+        // Show error if iframe fails to load
+        iframe.addEventListener('error', function() {
+            loadingOverlay.classList.add('hidden');
+            iframe.style.display = 'none';
+            alternativeView.style.display = 'block';
+        });
+
+        // Timeout fallback (if iframe takes too long or is blocked)
+        setTimeout(() => {
+            if (!loadingOverlay.classList.contains('hidden')) {
+                loadingOverlay.classList.add('hidden');
+                // Check if iframe loaded anything
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    if (!iframeDoc || iframeDoc.body.innerHTML === '') {
+                        iframe.style.display = 'none';
+                        alternativeView.style.display = 'block';
+                    }
+                } catch (e) {
+                    // Blocked by CORS/X-Frame-Options
+                    iframe.style.display = 'none';
+                    alternativeView.style.display = 'block';
+                }
+            }
+        }, 3000); // 3 seconds timeout
+    </script>
+</body>
+</html>
+

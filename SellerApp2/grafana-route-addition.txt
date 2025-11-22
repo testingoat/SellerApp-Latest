@@ -1,0 +1,27 @@
+
+    // 📊 Grafana Dashboard Route (Similar to FCM Dashboard)
+    app.get("/admin/grafana-dashboard", async (request, reply) => {
+        try {
+            const fs = await import('fs');
+            const filePath = '/var/www/goatgoat-staging/server/src/public/grafana-dashboard/index.html';
+            const html = await fs.promises.readFile(filePath, 'utf8');
+            reply.type('text/html');
+            return html;
+        } catch (error: any) {
+            reply.status(500).send(`<h1>Grafana Dashboard Error</h1><p>${error?.message || 'File not found'}</p>`);
+        }
+    });
+
+    // 📊 Grafana Status API Endpoint (Optional - for health checks)
+    app.get("/admin/grafana-dashboard/api/status", async (request, reply) => {
+        return {
+            success: true,
+            service: 'Grafana Cloud',
+            status: 'connected',
+            dashboardUrl: 'https://goatgoat.grafana.net',
+            dashboardUid: 'f3ee8022-12b2-4ddf-a8d5-e53fdd8ae81c',
+            lastUpdated: new Date().toISOString()
+        };
+    });
+    console.log('✅ Grafana dashboard route registered successfully');
+

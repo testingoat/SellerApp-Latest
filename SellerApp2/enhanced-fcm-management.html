@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔔 GoatGoat FCM Management - Enhanced</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7c3aed;
+            --primary-dark: #6d28d9;
+            --primary-light: #a78bfa;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+            --card-bg: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .main-container {
+            min-height: 100vh;
+            background: var(--light-bg);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 2rem 0;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .live-badge {
+            background: var(--danger-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .live-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary-color), var(--primary-light));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card.online .stat-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-card.tokens .stat-icon {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-card.sellers .stat-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .stat-card.mode .stat-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.1);
+            outline: none;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .data-table {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .table {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            font-weight: 600;
+            padding: 1rem;
+            border: none;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border: none;
+        }
+
+        .token-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            background: var(--light-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            color: var(--text-secondary);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .platform-badge.android {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-badge.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge.partial {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .target-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--light-bg);
+            color: var(--text-secondary);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border-radius: 2rem;
+            border: 2px solid var(--border-color);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .pagination-info {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 0.5rem;
+        }
+
+        .navigation-links {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-top: 3rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .form-floating label {
+            color: var(--text-secondary);
+        }
+
+        .form-floating .form-control:focus ~ label {
+            color: var(--primary-color);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #92400e;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .table {
+                font-size: 0.75rem;
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="container header-content">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1>
+                            <i class="bi bi-bell"></i>
+                            GoatGoat FCM Management
+                        </h1>
+                        <p class="subtitle mb-3">
+                            <i class="bi bi-speedometer2"></i>
+                            Push notification management dashboard
+                        </p>
+                        <div class="live-badge">
+                            🔴 LIVE MODE
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="d-flex flex-column align-items-md-end">
+                            <small class="text-white-50 mb-1">System Status</small>
+                            <div class="text-white">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                All Systems Operational
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container py-4">
+            <!-- Statistics Cards -->
+            <div class="stats-grid fade-in">
+                <div class="stat-card online">
+                    <div class="stat-icon">
+                        <i class="bi bi-wifi"></i>
+                    </div>
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value">Online</div>
+                </div>
+
+                <div class="stat-card tokens">
+                    <div class="stat-icon">
+                        <i class="bi bi-key"></i>
+                    </div>
+                    <div class="stat-label">Total Tokens</div>
+                    <div class="stat-value">30</div>
+                </div>
+
+                <div class="stat-card sellers">
+                    <div class="stat-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stat-label">Active Sellers</div>
+                    <div class="stat-value">5</div>
+                </div>
+
+                <div class="stat-card mode">
+                    <div class="stat-icon">
+                        <i class="bi bi-broadcast"></i>
+                    </div>
+                    <div class="stat-label">FCM Mode</div>
+                    <div class="stat-value" style="font-size: 1.5rem;">LIVE</div>
+                    <small class="text-muted">Max: 50 tokens</small>
+                </div>
+            </div>
+
+            <!-- Send Notification Section -->
+            <div class="content-section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="bi bi-send"></i>
+                        Send Notification
+                    </h2>
+                </div>
+
+                <div class="alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>LIVE MODE - Will send real push notifications</strong><br>
+                    <small>Maximum 50 tokens will be targeted. Use with caution.</small>
+                </div>
+
+                <form id="notificationForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="notificationTitle" placeholder="Notification Title" required>
+                                <label for="notificationTitle">Notification Title</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="sendTo" required>
+                                    <option value="all" selected>All Sellers (21 tokens)</option>
+                                    <option value="specific">Specific Sellers</option>
+                                    <option value="tokens">Specific Tokens</option>
+                                </select>
+                                <label for="sendTo">Send To</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-floating">
+                            <textarea class="form-control" id="message" placeholder="Message" style="height: 120px" required></textarea>
+                            <label for="message">Message</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="bi bi-send-fill"></i>
+                        Send Notification (LIVE 🔴)
+                    </button>
+                </form>
+            </div>
+
+            <!-- Registered FCM Tokens Section -->
+            <div class="content-section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="bi bi-key-fill"></i>
+                        Registered FCM Tokens
+                    </h2>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download"></i>
+                            Export
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" class="form-control" placeholder="Search by seller email or token..." id="tokenSearch">
+                </div>
+
+                <div class="data-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Seller</th>
+                                    <th>Token</th>
+                                    <th>Platform</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tokensTableBody">
+                                <!-- Token entries will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pagination-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Showing 30 registered FCM tokens
+                </div>
+            </div>
+
+            <!-- Notification History Section -->
+            <div class="content-section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Notification History
+                    </h2>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-funnel"></i>
+                            Filter
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="data-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Message</th>
+                                    <th>Targeting</th>
+                                    <th>Status</th>
+                                    <th>Sent</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <!-- History entries will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pagination-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Page 1 of 1 (6 of 6 notifications)
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation-links">
+            <div class="container">
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-house"></i>
+                        Admin Panel
+                    </a>
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-graph-up"></i>
+                        Monitoring
+                    </a>
+                    <a href="#" class="nav-link">
+                        <i class="bi bi-people"></i>
+                        Sellers
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Token data from the original page
+        const tokenData = [
+            { seller: "hmshivap@gmail.com", token: "eUDa55bCTISWOeX4kLZMJu:AP...", platform: "android", createdAt: "9/24/2025" },
+            { seller: "mateenattar@gmail.com", token: "dvrRfQMwSB-YrCaTG_sqHt:AP...", platform: "android", createdAt: "9/19/2025" },
+            { seller: "mateenattar@gmail.com", token: "fPeJM0w-STyu4LXOVc7jXc:AP...", platform: "android", createdAt: "9/24/2025" },
+            { seller: "mateenattar@gmail.com", token: "dK5LzlHEQYWPWJj6AA5UBe:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "mateenattar@gmail.com", token: "dsJCLABWST6OcDkwZ_gkNg:AP...", platform: "android", createdAt: "9/28/2025" },
+            { seller: "omkar@gmail.com", token: "d-VMD6RfQV6UTdZNGvzbAF:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "omkar@gmail.com", token: "dT0LuYW_Tqy469QeBotjxM:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "omkar@gmail.com", token: "eubr8H9-Sga61U7uhAeQRV:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "test2@gmail.com", token: "dR6wrHQtRIOzXfVFU2KURX:AP...", platform: "android", createdAt: "9/19/2025" },
+            { seller: "test2@gmail.com", token: "exV3zy8dQJCpKzmyvAzAV3:AP...", platform: "android", createdAt: "9/24/2025" },
+            { seller: "test2@gmail.com", token: "eHq4Yk-GRc-zSHNJQnF3R_:AP...", platform: "android", createdAt: "9/25/2025" },
+            { seller: "test2@gmail.com", token: "cuxdQpo2QrKeIyFjQaGYQi:AP...", platform: "android", createdAt: "9/26/2025" },
+            { seller: "test2@gmail.com", token: "eA8DkFueQceFEiNnvAEt7a:AP...", platform: "android", createdAt: "9/26/2025" },
+            { seller: "test2@gmail.com", token: "epq9cjyNQpWtgF0mOhyw1P:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "test2@gmail.com", token: "dK9rCV1CR-Oa0_8yAerIqr:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "test2@gmail.com", token: "cHYp_8qlTJOOOFlEWcYFwa:AP...", platform: "android", createdAt: "9/27/2025" },
+            { seller: "test2@gmail.com", token: "e4V6m_FQT2q58l1N_chwSP:AP...", platform: "android", createdAt: "9/28/2025" },
+            { seller: "test2@gmail.com", token: "eR3tP2rZRquLjmmAXteGYl:AP...", platform: "android", createdAt: "9/30/2025" },
+            { seller: "test2@gmail.com", token: "ceoOZ9tvQhSrTggbNuredX:AP...", platform: "android", createdAt: "9/30/2025" },
+            { seller: "test2@gmail.com", token: "d_qnqID0S5eMbgE_wFR8OY:AP...", platform: "android", createdAt: "10/2/2025" },
+            { seller: "test2@gmail.com", token: "dRdrov7oRISJIgbmwRZYsd:AP...", platform: "android", createdAt: "10/3/2025" },
+            { seller: "test2@gmail.com", token: "f9z9Gww1Rcexs2xBjDZ0c3:AP...", platform: "android", createdAt: "10/5/2025" },
+            { seller: "test2@gmail.com", token: "eR4e6XUxQPqa2qZ_MJK2kN:AP...", platform: "android", createdAt: "10/6/2025" },
+            { seller: "test2@gmail.com", token: "ezH44MHCQ6ikxzxO2P8s2l:AP...", platform: "android", createdAt: "10/9/2025" },
+            { seller: "test2@gmail.com", token: "dRzYYTvESz21YCsx7CnKCq:AP...", platform: "android", createdAt: "10/9/2025" },
+            { seller: "test01@gmail.com", token: "fGIIjYpnTsODmGXvqgIMmI:AP...", platform: "android", createdAt: "9/19/2025" },
+            { seller: "test01@gmail.com", token: "cmXJLDtmRF2cR7zZ7jjOwj:AP...", platform: "android", createdAt: "9/26/2025" },
+            { seller: "test01@gmail.com", token: "c9GvDy3mRuO8aXGV4OfmXG:AP...", platform: "android", createdAt: "9/26/2025" },
+            { seller: "test01@gmail.com", token: "dPVbm-3KSQWSank3xMMbX0:AP...", platform: "android", createdAt: "9/26/2025" },
+            { seller: "test01@gmail.com", token: "fiFUzP5rSZmXPZdi6-VkEC:AP...", platform: "android", createdAt: "9/27/2025" }
+        ];
+
+        // History data from the original page
+        const historyData = [
+            { title: "test notification implementation 2", message: "test notification implementation", targeting: "sellers", status: "success", sent: 0, createdAt: "10/2/2025" },
+            { title: "test notification implementation", message: "test notification implementation", targeting: "sellers", status: "success", sent: 0, createdAt: "10/2/2025" },
+            { title: "hey hey", message: "hey hey hey", targeting: "all", status: "success", sent: 0, createdAt: "9/30/2025" },
+            { title: "hey", message: "hey - notification history test 1", targeting: "all", status: "success", sent: 0, createdAt: "9/30/2025" },
+            { title: "Final Test Dry-Run", message: "Testing if dry-run logging works now", targeting: "all", status: "success", sent: 0, createdAt: "9/29/2025" },
+            { title: "Test Notification History", message: "Testing notification history logging after fixes", targeting: "all", status: "partial", sent: 0, createdAt: "9/29/2025" }
+        ];
+
+        // Function to populate tokens table
+        function populateTokensTable(data = tokenData) {
+            const tbody = document.getElementById('tokensTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(token => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                <i class="bi bi-person-fill text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="fw-medium">${token.seller}</div>
+                                <small class="text-muted">Active</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="token-cell" title="${token.token}">
+                            ${token.token}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="platform-badge android">
+                            <i class="bi bi-android"></i>
+                            ${token.platform}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span>${token.createdAt}</span>
+                            <small class="text-muted">Recent</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" title="Copy Token">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" title="Delete Token">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Function to populate history table
+        function populateHistoryTable() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            historyData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="fw-medium">${item.title}</div>
+                    </td>
+                    <td>
+                        <div class="text-truncate" style="max-width: 200px;" title="${item.message}">
+                            ${item.message}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="target-badge">
+                            <i class="bi bi-${item.targeting === 'all' ? 'globe' : 'people'}"></i>
+                            ${item.targeting}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${item.status}">
+                            <i class="bi bi-${item.status === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="fw-medium">${item.sent}</span>
+                            <small class="text-muted ms-1">sent</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span>${item.createdAt}</span>
+                            <small class="text-muted">History</small>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('tokenSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredData = tokenData.filter(token =>
+                token.seller.toLowerCase().includes(searchTerm) ||
+                token.token.toLowerCase().includes(searchTerm)
+            );
+            populateTokensTable(filteredData);
+        });
+
+        // Form submission
+        document.getElementById('notificationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('notificationTitle').value;
+            const message = document.getElementById('message').value;
+            const sendTo = document.getElementById('sendTo').value;
+
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading-spinner"></span> Sending...';
+            submitBtn.disabled = true;
+
+            // Simulate API call
+            setTimeout(() => {
+                // Reset form
+                e.target.reset();
+                submitBtn.innerHTML = originalBtnHtml;
+                submitBtn.disabled = false;
+
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                alert.style.zIndex = '9999';
+                alert.innerHTML = `
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>Success!</strong> Notification sent successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(alert);
+
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
+            }, 2000);
+        });
+
+        // Initialize tables on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTokensTable();
+            populateHistoryTable();
+
+            // Add copy functionality to token copy buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('button[title="Copy Token"]')) {
+                    const tokenCell = e.target.closest('tr').querySelector('.token-cell');
+                    const tokenText = tokenCell.getAttribute('title');
+
+                    navigator.clipboard.writeText(tokenText).then(() => {
+                        const btn = e.target.closest('button');
+                        const originalIcon = btn.innerHTML;
+                        btn.innerHTML = '<i class="bi bi-check"></i>';
+                        btn.classList.add('btn-success');
+                        btn.classList.remove('btn-outline-primary');
+
+                        setTimeout(() => {
+                            btn.innerHTML = originalIcon;
+                            btn.classList.remove('btn-success');
+                            btn.classList.add('btn-outline-primary');
+                        }, 2000);
+                    });
+                }
+            });
+        });
+
+        // Add fade-in animation to sections on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

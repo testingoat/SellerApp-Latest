@@ -1,0 +1,56 @@
+remotecfg {
+	url            = "https://fleet-management-prod-018.grafana.net"
+	id             = "srv1007003"
+	poll_frequency = "60s"
+
+	basic_auth {
+		username = "1399459"
+		password = sys.env("GCLOUD_RW_API_KEY")
+	}
+}
+
+prometheus.remote_write "metrics_service" {
+	endpoint {
+		url = "https://prometheus-prod-43-prod-ap-south-1.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = "2723153"
+			password = sys.env("GCLOUD_RW_API_KEY")
+		}
+	}
+}
+
+loki.write "grafana_cloud_loki" {
+	endpoint {
+		url = "https://logs-prod-028.grafana.net/loki/api/v1/push"
+
+		basic_auth {
+			username = "1357253"
+			password = sys.env("GCLOUD_RW_API_KEY")
+		}
+	}
+}
+
+prometheus.exporter.unix "integrations_node_exporter" {
+	disable_collectors = ["ipvs", "btrfs", "infiniband", "xfs", "zfs"]
+}
+
+discovery.relabel "integrations_node_exporter" {
+	targets = prometheus.exporter.unix.integrations_node_exporter.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = constants.hostname
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/node_exporter"
+	}
+}
+
+prometheus.scrape "integrations_node_exporter" {
+	targets    = discovery.relabel.integrations_node_exporter.output
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+}
+

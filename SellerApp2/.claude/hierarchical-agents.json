@@ -1,0 +1,141 @@
+{
+  "hierarchy": {
+    "primary": {
+      "name": "claude-primary",
+      "description": "Main orchestrator agent",
+      "capabilities": ["agent_coordination", "context_management", "permission_control"],
+      "subordinates": ["mobile-lead", "quality-lead", "infrastructure-lead"]
+    },
+    "tier2": {
+      "mobile-lead": {
+        "name": "Mobile Development Lead",
+        "description": "Leads mobile development tasks",
+        "model": "glm-4.6",
+        "capabilities": ["react_native", "ios_development", "android_development"],
+        "subordinates": ["ui-agent", "state-agent", "api-agent"],
+        "tools": ["Read", "Write", "Edit", "Bash", "Task"],
+        "can_spawn": true
+      },
+      "quality-lead": {
+        "name": "Quality Assurance Lead",
+        "description": "Leads code quality and testing",
+        "model": "glm-4.6",
+        "capabilities": ["code_review", "testing", "performance_analysis"],
+        "subordinates": ["reviewer-agent", "tester-agent", "performance-agent"],
+        "tools": ["Read", "Grep", "Glob", "Bash", "Task"],
+        "can_spawn": true
+      },
+      "infrastructure-lead": {
+        "name": "Infrastructure Lead",
+        "description": "Leads build and deployment tasks",
+        "model": "glm-4.6",
+        "capabilities": ["build_management", "deployment", "monitoring"],
+        "subordinates": ["build-agent", "deploy-agent", "monitor-agent"],
+        "tools": ["Bash", "Read", "WebFetch", "Task"],
+        "can_spawn": true
+      }
+    },
+    "tier3": {
+      "ui-agent": {
+        "name": "UI Components Specialist",
+        "description": "Creates and optimizes UI components",
+        "capabilities": ["component_development", "styling", "accessibility"],
+        "tools": ["Read", "Write", "Edit", "Glob"],
+        "can_spawn": false,
+        "parent": "mobile-lead"
+      },
+      "state-agent": {
+        "name": "State Management Specialist",
+        "description": "Handles state management logic",
+        "capabilities": ["state_management", "redux", "context_api"],
+        "tools": ["Read", "Write", "Edit", "Grep"],
+        "can_spawn": false,
+        "parent": "mobile-lead"
+      },
+      "api-agent": {
+        "name": "API Integration Specialist",
+        "description": "Manages API connections and data flow",
+        "capabilities": ["api_integration", "data_fetching", "error_handling"],
+        "tools": ["Read", "Write", "Edit", "WebFetch"],
+        "can_spawn": false,
+        "parent": "mobile-lead"
+      },
+      "reviewer-agent": {
+        "name": "Code Review Specialist",
+        "description": "Performs detailed code reviews",
+        "capabilities": ["code_analysis", "best_practices", "security_review"],
+        "tools": ["Read", "Grep", "Glob"],
+        "can_spawn": false,
+        "parent": "quality-lead"
+      },
+      "tester-agent": {
+        "name": "Testing Specialist",
+        "description": "Creates and runs tests",
+        "capabilities": ["unit_testing", "integration_testing", "e2e_testing"],
+        "tools": ["Read", "Write", "Bash", "Grep"],
+        "can_spawn": false,
+        "parent": "quality-lead"
+      },
+      "performance-agent": {
+        "name": "Performance Specialist",
+        "description": "Analyzes and optimizes performance",
+        "capabilities": ["performance_analysis", "optimization", "profiling"],
+        "tools": ["Read", "Bash", "WebFetch"],
+        "can_spawn": false,
+        "parent": "quality-lead"
+      },
+      "build-agent": {
+        "name": "Build Specialist",
+        "description": "Manages build processes",
+        "capabilities": ["build_configuration", "dependency_management", "build_optimization"],
+        "tools": ["Bash", "Read", "Write"],
+        "can_spawn": false,
+        "parent": "infrastructure-lead"
+      },
+      "deploy-agent": {
+        "name": "Deployment Specialist",
+        "description": "Handles deployment processes",
+        "capabilities": ["deployment", "ci_cd", "environment_management"],
+        "tools": ["Bash", "WebFetch", "Write"],
+        "can_spawn": false,
+        "parent": "infrastructure-lead"
+      },
+      "monitor-agent": {
+        "name": "Monitoring Specialist",
+        "description": "Sets up and manages monitoring",
+        "capabilities": ["monitoring", "logging", "alerting"],
+        "tools": ["Read", "Write", "Bash", "WebFetch"],
+        "can_spawn": false,
+        "parent": "infrastructure-lead"
+      }
+    }
+  },
+  "workflows": {
+    "feature_development": {
+      "flow": ["mobile-lead", "ui-agent", "state-agent", "api-agent", "reviewer-agent"],
+      "description": "Complete feature development workflow"
+    },
+    "bug_fix": {
+      "flow": ["debugger", "mobile-lead", "reviewer-agent", "tester-agent"],
+      "description": "Bug fixing and testing workflow"
+    },
+    "performance_optimization": {
+      "flow": ["performance-agent", "mobile-lead", "build-agent"],
+      "description": "Performance analysis and optimization"
+    },
+    "code_review": {
+      "flow": ["quality-lead", "reviewer-agent", "performance-agent"],
+      "description": "Comprehensive code review process"
+    },
+    "deployment": {
+      "flow": ["infrastructure-lead", "build-agent", "deploy-agent", "monitor-agent"],
+      "description": "Build and deployment pipeline"
+    }
+  },
+  "communication_patterns": {
+    "top_down": "Primary delegates to Tier2 leads",
+    "horizontal": "Tier2 leads coordinate with each other",
+    "bottom_up": "Tier3 agents report to their Tier2 parents",
+    "cross_functional": "Agents can communicate across teams for specific tasks"
+  }
+}

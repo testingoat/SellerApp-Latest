@@ -1,0 +1,58 @@
+// SellerApp2 Environment Configuration
+// This file now uses automatic environment detection for server switching
+
+import environment from './environment';
+
+const API_BASE_URL = `${environment.API_BASE_URL}/api`;
+const SELLER_API_URL = `${API_BASE_URL}/seller`;
+
+export const API_ENDPOINTS = {
+  // Authentication endpoints
+  LOGIN: `${SELLER_API_URL}/login`,
+  VERIFY_OTP: `${SELLER_API_URL}/verify-otp`,
+  RESEND_OTP: `${SELLER_API_URL}/resend-otp`,
+  LOGOUT: `${SELLER_API_URL}/logout`,
+
+  // Seller profile endpoints
+  PROFILE: `${SELLER_API_URL}/profile`,
+  UPDATE_PROFILE: `${SELLER_API_URL}/profile`,
+
+  // Store registration and management endpoints  
+  STORE_REGISTER: `${SELLER_API_URL}/register`, // Use register endpoint for completing seller registration
+  STORE: `${SELLER_API_URL}/profile`,
+  UPDATE_STORE: `${SELLER_API_URL}/register`,
+
+  // Products endpoints (for future use)
+  PRODUCTS: `${SELLER_API_URL}/products`,
+  ADD_PRODUCT: `${SELLER_API_URL}/products`,
+  UPDATE_PRODUCT: `${SELLER_API_URL}/products`,
+  DELETE_PRODUCT: `${SELLER_API_URL}/products`,
+
+  // Location management endpoints
+  SET_LOCATION: `${SELLER_API_URL}/location`,
+  GET_LOCATION: `${SELLER_API_URL}/location`,
+  UPDATE_LOCATION: `${SELLER_API_URL}/location`,
+
+  // Delivery area management endpoints
+  DELIVERY_AREA: `${SELLER_API_URL}/delivery-area`,
+
+  // Seller notifications endpoints
+  NOTIFICATIONS: `${SELLER_API_URL}/notifications`,
+  NOTIFICATION_MARK_READ: `${SELLER_API_URL}/notifications/:id/read`,
+  NOTIFICATION_DELETE: `${SELLER_API_URL}/notifications/:id`,
+  NOTIFICATIONS_MARK_ALL_READ: `${SELLER_API_URL}/notifications/mark-all-read`,
+} as const;
+
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: 'seller_auth_token',
+  USER_DATA: 'seller_user_data',
+  STORE_DATA: 'seller_store_data',
+} as const;
+
+export const CONFIG = {
+  API_TIMEOUT: 30000, // 30 seconds
+  OTP_RESEND_DELAY: 30, // 30 seconds
+  TOKEN_REFRESH_THRESHOLD: 5 * 60 * 1000, // 5 minutes in milliseconds
+  // Google Maps API key for geocoding services
+  GOOGLE_MAPS_API_KEY: 'AIzaSyDOBBimUu_eGMwsXZUqrNFk3puT5rMWbig', // Correct Google Maps API key
+} as const;

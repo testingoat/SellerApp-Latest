@@ -1,0 +1,150 @@
+remotecfg {
+	url            = "https://fleet-management-prod-018.grafana.net"
+	id             = "srv1007003"
+	poll_frequency = "60s"
+
+	basic_auth {
+		username = "1399459"
+		password = sys.env("GCLOUD_RW_API_KEY")
+	}
+}
+
+prometheus.remote_write "metrics_service" {
+	endpoint {
+		url = "https://prometheus-prod-43-prod-ap-south-1.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = "2723153"
+			password = sys.env("GCLOUD_RW_API_KEY")
+		}
+	}
+}
+
+loki.write "grafana_cloud_loki" {
+	endpoint {
+		url = "https://logs-prod-028.grafana.net/loki/api/v1/push"
+
+		basic_auth {
+			username = "1357253"
+			password = sys.env("GCLOUD_RW_API_KEY")
+		}
+	}
+}
+
+prometheus.exporter.unix "integrations_node_exporter" {
+	disable_collectors = ["ipvs", "btrfs", "infiniband", "xfs", "zfs"]
+}
+
+discovery.relabel "integrations_node_exporter" {
+	targets = prometheus.exporter.unix.integrations_node_exporter.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = constants.hostname
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/node_exporter"
+	}
+}
+
+prometheus.scrape "integrations_node_exporter" {
+	targets    = discovery.relabel.integrations_node_exporter.output
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+}
+
+// ========================================
+// PM2 Log Collection Configuration
+// ========================================
+
+// Define PM2 log file targets
+local.file_match "pm2_logs" {
+	path_targets = [
+		{
+			__path__ = "/var/www/goatgoat-production/server/logs/📄-production-output.log",
+			app      = "goatgoat-production",
+			log_type = "stdout",
+			env      = "production",
+		},
+		{
+			__path__ = "/var/www/goatgoat-production/server/logs/🚨-production-error.log",
+			app      = "goatgoat-production",
+			log_type = "stderr",
+			env      = "production",
+		},
+		{
+			__path__ = "/var/www/goatgoat-staging/server/logs/📄-staging-output.log",
+			app      = "goatgoat-staging",
+			log_type = "stdout",
+			env      = "staging",
+		},
+		{
+			__path__ = "/var/www/goatgoat-staging/server/logs/🚨-staging-error.log",
+			app      = "goatgoat-staging",
+			log_type = "stderr",
+			env      = "staging",
+		},
+	]
+}
+
+// Read PM2 log files
+loki.source.file "pm2_logs" {
+	targets    = local.file_match.pm2_logs.targets
+	forward_to = [loki.process.pm2_logs.receiver]
+
+	// Only tail new logs (don't read from beginning)
+	tail_from_end = true
+}
+
+// Process and filter PM2 logs
+loki.process "pm2_logs" {
+	forward_to = [loki.write.grafana_cloud_loki.receiver]
+
+	// Extract timestamp from PM2 logs (format: 2025-10-08T20:00:00)
+	stage.regex {
+		expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})"
+	}
+
+	stage.timestamp {
+		source = "timestamp"
+		format = "2006-01-02T15:04:05"
+	}
+
+	// Extract log level (ERROR, WARN, INFO, DEBUG)
+	stage.regex {
+		expression = "(?i)(ERROR|WARN|WARNING|INFO|DEBUG)"
+	}
+
+	stage.labels {
+		values = {
+			level = "",
+		}
+	}
+
+	// For stdout logs: drop DEBUG, sample INFO at 50%
+	stage.match {
+		selector = "{log_type=\"stdout\"}"
+
+		// Drop DEBUG logs completely
+		stage.drop {
+			expression = "(?i)DEBUG"
+		}
+
+		// Sample INFO logs at 50% (keep 1 out of every 2)
+		stage.sampling {
+			rate = 0.5
+		}
+	}
+
+	// ALWAYS keep error logs (100%) - stderr logs pass through without filtering
+
+	// Add instance label
+	stage.static_labels {
+		values = {
+			instance = constants.hostname,
+			job      = "pm2-logs",
+		}
+	}
+}
+
