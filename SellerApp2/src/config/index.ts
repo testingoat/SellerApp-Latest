@@ -56,3 +56,6 @@ export const CONFIG = {
   // Google Maps API key for geocoding services
   GOOGLE_MAPS_API_KEY: 'AIzaSyDOBBimUu_eGMwsXZUqrNFk3puT5rMWbig', // Correct Google Maps API key
 } as const;
+
+// Socket.IO base URL (matches API host; no /api suffix)
+export const SOCKET_URL = environment.API_BASE_URL;

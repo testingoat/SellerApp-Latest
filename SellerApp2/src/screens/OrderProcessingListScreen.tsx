@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,10 +18,14 @@ import { useNavigation } from '@react-navigation/native';
 import { orderService, Order } from '../services/orderService';
 import { useTheme } from '../context/ThemeContext';
 import { withNetworkErrorBoundary } from '../components/NetworkErrorBoundary';
+import { useAuthStore } from '../state/authStore';
+import { SOCKET_URL } from '../config';
+import { io, Socket } from 'socket.io-client';
 
 const OrderProcessingListScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'new' | 'progress' | 'completed' | 'cancelled'>('new');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,11 +37,58 @@ const OrderProcessingListScreen: React.FC = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const socketRef = useRef<Socket | null>(null);
 
   // Fetch orders when component mounts or tab changes
   useEffect(() => {
     fetchOrders();
   }, [activeTab]);
+
+  // Setup Socket.IO listener for new orders
+  useEffect(() => {
+    if (!user?._id) {
+      return;
+    }
+
+    // Avoid multiple connections
+    if (socketRef.current) {
+      return;
+    }
+
+    try {
+      const socket = io(SOCKET_URL, {
+        transports: ['websocket'],
+        withCredentials: true,
+      });
+
+      socketRef.current = socket;
+
+      socket.on('connect', () => {
+        console.log('dY"? Seller socket connected');
+        socket.emit('joinRoom', `seller_${user._id}`);
+      });
+
+      socket.on('newOrderPending', () => {
+        console.log('dY"? New order pending received via socket');
+        // Always refresh "New" tab; for other tabs we keep existing filters
+        fetchOrders();
+        Alert.alert('New Order', 'A new order is awaiting your approval.');
+      });
+
+      socket.on('disconnect', () => {
+        console.log('dY"? Seller socket disconnected');
+      });
+    } catch (error) {
+      console.error('�?O Failed to initialize seller socket:', error);
+    }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [user?._id]);
 
   const fetchOrders = async () => {
     try {
@@ -50,8 +101,20 @@ const OrderProcessingListScreen: React.FC = () => {
       setOrders(response.orders || []);
     } catch (err: any) {
       console.error('Failed to fetch orders:', err);
-      setError(err.message || 'Failed to load orders');
-      Alert.alert('Error', err.message || 'Failed to load orders');
+      const message = err.userMessage || err.message || 'Failed to load orders';
+      setError(message);
+
+      // Handle authentication errors by redirecting to login
+      if (err.type === 'AUTHENTICATION' || err.status === 401 || err.status === 403) {
+        Alert.alert('Session Expired', message, [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Auth' as never),
+          },
+        ]);
+      } else {
+        Alert.alert('Error', message);
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +152,7 @@ const OrderProcessingListScreen: React.FC = () => {
         order._id?.toLowerCase().includes(query) ||
         order.customer?.name?.toLowerCase().includes(query) ||
         order.customer?.phone?.includes(query) ||
-        order.totalAmount?.toString().includes(query)
+        order.totalPrice?.toString().includes(query)
       );
     }
 
@@ -123,7 +186,7 @@ const OrderProcessingListScreen: React.FC = () => {
       if (sortBy === 'date') {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else {
-        return (b.totalAmount || 0) - (a.totalAmount || 0);
+        return (b.totalPrice || 0) - (a.totalPrice || 0);
       }
     });
 

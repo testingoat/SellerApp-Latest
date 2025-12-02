@@ -53,7 +53,19 @@ const OrderTimelineScreen: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Failed to fetch order details:', err);
-      setError(err.message || 'Failed to load order details');
+      const message = err.userMessage || err.message || 'Failed to load order details';
+      setError(message);
+
+      if (err.type === 'AUTHENTICATION' || err.status === 401 || err.status === 403) {
+        Alert.alert('Session Expired', message, [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Auth' as never),
+          },
+        ]);
+      } else {
+        Alert.alert('Error', message);
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +79,7 @@ const OrderTimelineScreen: React.FC = () => {
   const generateTimeline = (order: Order): TimelineStep[] => {
     const steps: TimelineStep[] = [];
 
-    // Step 1: Order Placed
+    // Step 1: Order placed by customer
     steps.push({
       id: '1',
       title: 'Order Placed',
@@ -109,7 +121,7 @@ const OrderTimelineScreen: React.FC = () => {
       return steps; // Stop here if pending
     }
 
-    // Step 3: Confirmed
+    // Step 3: Order confirmed for delivery (matches customer "Order Confirmed")
     if (order.status === 'confirmed' || order.status === 'arriving' || order.status === 'delivered') {
       steps.push({
         id: '3',
@@ -130,11 +142,11 @@ const OrderTimelineScreen: React.FC = () => {
       });
     }
 
-    // Step 4: In Transit
+    // Step 4: In transit / on the way (matches customer "On the Way")
     if (order.status === 'arriving' || order.status === 'delivered') {
       steps.push({
         id: '4',
-        title: 'In Transit',
+        title: 'On the Way',
         time: formatTime(order.updatedAt),
         icon: 'local-shipping',
         completed: true,
@@ -143,7 +155,7 @@ const OrderTimelineScreen: React.FC = () => {
     } else {
       steps.push({
         id: '4',
-        title: 'In Transit',
+        title: 'On the Way',
         time: 'Pending',
         icon: 'local-shipping',
         completed: false,

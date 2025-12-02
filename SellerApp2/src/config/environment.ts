@@ -1,25 +1,24 @@
 /**
- * 🌍 ENVIRONMENT CONFIGURATION
- * 
- * Automatically switches between staging and production servers based on build type:
- * - Debug builds → Staging server (port 4000)
- * - Release builds → Production server (port 3000)
- * 
- * This ensures:
- * ✅ Development always uses staging
- * ✅ Play Store APK always uses production
- * ✅ Zero manual intervention required
+ * ENVIRONMENT CONFIGURATION (Seller App)
+ *
+ * Uses APP_ENV to select between staging and production servers:
+ * - APP_ENV=staging    → https://staging.goatgoat.tech
+ * - APP_ENV=production → https://goatgoat.tech
+ *
+ * Default is STAGING to keep all builds safe during development.
  */
 
 const environments = {
   staging: {
-    API_BASE_URL: 'http://147.93.108.121:4000',  // 🟡 STAGING SERVER
+    // Staging via nginx proxy (same as customer app)
+    API_BASE_URL: 'https://staging.goatgoat.tech',
     FCM_ENDPOINT: '/admin/fcm-management',
     DEBUG_MODE: true,
     ENVIRONMENT: 'staging',
   },
   production: {
-    API_BASE_URL: 'http://147.93.108.121:3000',  // 🔴 PRODUCTION SERVER
+    // Production via nginx proxy (same as customer app)
+    API_BASE_URL: 'https://goatgoat.tech',
     FCM_ENDPOINT: '/admin/fcm-management',
     DEBUG_MODE: false,
     ENVIRONMENT: 'production',
@@ -27,20 +26,21 @@ const environments = {
 };
 
 /**
- * 🎯 AUTOMATIC ENVIRONMENT DETECTION
- * 
- * __DEV__ is a React Native global that's:
- * - true in debug builds
- * - false in release builds
+ * ENVIRONMENT SELECTION
+ *
+ * APP_ENV is read from process.env (Metro / build env):
+ * - 'production' → production config
+ * - anything else (or missing) → staging config
  */
-// Check if __DEV__ exists (React Native environment) or use Node.js fallback
-const isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
 
-const config = isDevelopment
-  ? environments.staging    // 🛠️ Debug → Staging
-  : environments.production; // 📱 Release → Production
+const appEnvFromProcess = (process.env.APP_ENV || '').toLowerCase();
+const appEnv: 'staging' | 'production' =
+  appEnvFromProcess === 'production' ? 'production' : 'staging';
 
-console.log(`🌍 Environment: ${config.ENVIRONMENT.toUpperCase()}`);
-console.log(`🔗 API Base URL: ${config.API_BASE_URL}`);
+const config = environments[appEnv];
+
+console.log(`Seller Environment: ${config.ENVIRONMENT.toUpperCase()}`);
+console.log(`Seller API Base URL: ${config.API_BASE_URL}`);
 
 export default config;
+

@@ -84,6 +84,9 @@ export interface Order {
   status: OrderStatus;
   sellerResponse: SellerResponse;
   totalPrice: number;
+  deliveryFee?: number;
+  deliveryPartnerEarnings?: number;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
   deliveryPartner?: {
@@ -363,4 +366,3 @@ export const orderService = new OrderService();
 
 // Export class for testing
 export { OrderService };
-
